@@ -2,7 +2,7 @@ package com.zillow.zda.data_lake.credential;
 
 import com.amazonaws.auth.*;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient;
+import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import org.apache.hadoop.conf.Configurable;
@@ -11,7 +11,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.log4j.Logger;
 import org.apache.log4j.LogManager;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.Map;
 
@@ -28,10 +27,17 @@ import java.util.Map;
  */
 public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, Configurable {
 
+    public final static String NAME = "com.zillow.zda.data_lake.credential.RoleBasedAWSCredentialProvider";
+
     /**
      * URI query key for the ARN string
      */
     public final static String AWS_ROLE_ARN_KEY = "amz-assume-role-arn";
+
+    /**
+     * Prefix for the Assume Role Session name.
+     */
+    public final static String AWS_SESSION_PREFIX = "amz-session-prefix";
 
     /**
      * Time before expiry within which credentials will be renewed.
@@ -42,11 +48,6 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
      * Life span of the temporary credential requested from STS
      */
     private static final int DURATION_TIME_SECONDS = 3600;
-
-    /**
-     * The original url containing a AWS role ARN in the query parameter.
-     */
-    private final URI uri;
 
     /**
      * AWS security token service instance.
@@ -74,20 +75,16 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
     private String roleArn;
 
     /**
+     * The prefix to use when naming the session.
+     */
+    private String sessionNamePrefix;
+
+    /**
      * Environment variable that may contain role to assume
      */
     private final String ROLE_ENV_VAR = "AWS_ROLE_ARN_KEY";
-    
-    /**
-     * AWS authentication environment variables
-     */
-    private final String AWS_SECRET_KEY_ID = "AWS_SECRET_KEY_ID";
-    private final String AWS_SECRET_ACCESS_KEY  = "AWS_SECRET_ACCESS_KEY";
-    private final String AWS_SESSION_TOKEN  = "AWS_SESSION_TOKEN";
 
     private Logger logger = LogManager.getLogger(RoleBasedAWSCredentialProvider.class);
-
-
 
     /**
      * Create a {@link AWSCredentialsProvider} from an URI. The URI must contain a query parameter specifying
@@ -99,19 +96,19 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
      * @param uri           An URI containing role ARN parameter
      * @param configuration Hadoop configuration data
      */
-    public RoleBasedAWSCredentialProvider(URI uri, Configuration configuration) {
-        this.uri = uri;
-
+    public RoleBasedAWSCredentialProvider(Configuration configuration) {
         // This constructor is called by hadoop on EMR. The EMR instance must
         // have permission to access AWS security token service.
         // TODO - consider allow user to supply long-live credentials through hadoop configuration
-        this.securityTokenService = new AWSSecurityTokenServiceClient();
+        this.securityTokenService = AWSSecurityTokenServiceClientBuilder.defaultClient();
+
         this.timeProvider = new TimeProvider() {
             @Override
             public long currentTimeMillis() {
                 return System.currentTimeMillis();
             }
         };
+
         this.roleArn = configuration.get(AWS_ROLE_ARN_KEY);
         if(this.roleArn == null) {
             logger.warn("RoleBasedAWSCredentialProvider: No role provided via " + 
@@ -129,26 +126,27 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
                 logger.warn("RoleBasedAWSCredentialProvider: Using role ARN " + this.roleArn);
             }
         }
+
+        this.sessionNamePrefix = configuration.get(AWS_SESSION_PREFIX);
+        if (this.sessionNamePrefix == null) {
+            this.sessionNamePrefix = "role-based-credential-provider";
+        }
     }
 
     /**
      * Internal ctor for testing purpose
      *
-     * @param uri                       An URI containing role ARN parameter
      * @param configuration             Hadoop configuration data
      * @param securityTokenService      AWS Security Token Service
      * @param timeProvider              Function interface to provide system time
      */
-    RoleBasedAWSCredentialProvider(URI uri,
-                                   Configuration configuration,
+    RoleBasedAWSCredentialProvider(Configuration configuration,
                                    AWSSecurityTokenService securityTokenService,
                                    TimeProvider timeProvider) {
         this.roleArn = configuration.get(AWS_ROLE_ARN_KEY);
-        this.uri = uri;
         this.securityTokenService = securityTokenService;
         this.timeProvider = timeProvider;
     }
-
 
     @Override
     public AWSCredentials getCredentials() {
@@ -173,7 +171,6 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
 
     @Override
     public void setConf(Configuration configuration) {
-
     }
 
     @Override
@@ -181,10 +178,9 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
         return null;
     }
 
-
     private AWSCredentials startSession() {
         try {
-            String sessionName = "custom-credential-provider" + String.valueOf(this.timeProvider.currentTimeMillis());
+            String sessionName = this.sessionNamePrefix + String.valueOf(this.timeProvider.currentTimeMillis());
             AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest()
                     .withRoleArn(this.roleArn)
                     .withRoleSessionName(sessionName)
