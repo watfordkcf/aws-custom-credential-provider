@@ -32,12 +32,12 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
     /**
      * URI query key for the ARN string
      */
-    public final static String AWS_ROLE_ARN_KEY = "amz-assume-role-arn";
+    public final static String AWS_ROLE_ARN_KEY = "spark.amz-assume-role-arn";
 
     /**
      * Prefix for the Assume Role Session name.
      */
-    public final static String AWS_SESSION_PREFIX = "amz-session-prefix";
+    public final static String AWS_SESSION_PREFIX = "spark.amz-session-prefix";
 
     /**
      * Time before expiry within which credentials will be renewed.
