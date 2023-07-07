@@ -1,4 +1,4 @@
-package com.zillow.zda.data_lake.credential;
+package com.kcftech.sd.credentials;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -7,14 +7,14 @@ import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
 import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
+
 import org.apache.hadoop.conf.Configuration;
-import org.junit.Test;
-import org.junit.Assert;
+import org.junit.jupiter.api.Test;
 
 import java.util.Calendar;
 import java.util.Date;
 
-import static org.mockito.Matchers.isA;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.*;
  */
 public class TestRoleBasedAWSCredentialProvider {
 
-    //@Test
+    @Test
     public void shouldReturnNullIfNoAssumeRoleProvided() {
         AWSSecurityTokenService tokenService = mock(AWSSecurityTokenService.class);
 
@@ -41,10 +41,10 @@ public class TestRoleBasedAWSCredentialProvider {
 
         Configuration configuration = new Configuration();
         AWSCredentialsProvider provider = new RoleBasedAWSCredentialProvider(configuration, tokenService, timeProvider);
-        Assert.assertEquals(null, provider.getCredentials());
+        assertEquals(null, provider.getCredentials());
     }
 
-    //@Test
+    @Test
     public void shouldMaintainAndExpireSessionCredential() {
         AWSSecurityTokenService tokenService = mock(AWSSecurityTokenService.class);
 
@@ -96,11 +96,11 @@ public class TestRoleBasedAWSCredentialProvider {
 
     private void ValidateSessionId(AWSCredentialsProvider provider, String sessionId) {
         AWSCredentials producedCredentials = provider.getCredentials();
-        Assert.assertTrue(producedCredentials instanceof BasicSessionCredentials);
+        assertTrue(producedCredentials instanceof BasicSessionCredentials);
         BasicSessionCredentials sessionCredentials = (BasicSessionCredentials) producedCredentials;
-        Assert.assertEquals("keyid", sessionCredentials.getAWSAccessKeyId());
-        Assert.assertEquals("key", sessionCredentials.getAWSSecretKey());
-        Assert.assertEquals(sessionId, sessionCredentials.getSessionToken());
+        assertEquals("keyid", sessionCredentials.getAWSAccessKeyId());
+        assertEquals("key", sessionCredentials.getAWSSecretKey());
+        assertEquals(sessionId, sessionCredentials.getSessionToken());
     }
 
     /**

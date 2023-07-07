@@ -1,4 +1,4 @@
-package com.zillow.zda.data_lake.credential;
+package com.kcftech.sd.credentials;
 
 /**
  * Abstraction of system time function for testing purpose

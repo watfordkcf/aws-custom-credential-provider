@@ -3,48 +3,66 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.zillow</groupId>
-    <artifactId>aws-custom-credential-provider</artifactId>
+    <groupId>com.kcftech.sd</groupId>
+    <artifactId>delta-spark-utils</artifactId>
 
-    <name>aws-custom-credential-provider</name>
-    <version>1.0</version>
+    <name>delta-spark-utils</name>
+    <version>1.0.0</version>
+
     <properties>
-	<aws.sdk.version>1.11.901</aws.sdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+
+        <!-- Dependency Versions -->
+        <aws.sdk.version>1.11.901</aws.sdk.version>
+        <hadoop.version>3.3.1</hadoop.version>
+        <log4j.version>1.2.17</log4j.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.9.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-bundle</artifactId>
-	        <version>${aws.sdk.version}</version>
+            <version>${aws.sdk.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>${log4j.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
-            <version>4.12</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
-            <version>1.9.5</version>
-        </dependency>
-        <!--
-            The credential provider keep its dependencies compatible with 
-            EMR cluster settings. Here, we use the same versions of log4j 
-            and hadoop core libraries as Spark 1.6 EMR cluster.
-        -->
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-common</artifactId>
-            <version>3.3.1</version>
+            <version>5.4.0</version>
         </dependency>
     </dependencies>
 
@@ -56,21 +74,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
-                <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.1</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
             </plugin>
         </plugins>
-        <resources>
-            <resource>
-                <directory>config</directory>
-            </resource>
-        </resources>
-        <testResources>
-            <testResource>
-                <directory>test_config</directory>
-            </testResource>
-        </testResources>
     </build>
 </project>
