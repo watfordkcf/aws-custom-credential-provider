@@ -28,6 +28,9 @@ import java.util.Map;
  */
 public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, Configurable {
 
+    /**
+     * Name of the credential provider to use.
+     */
     public final static String NAME = "com.kcftech.sd.credentials.RoleBasedAWSCredentialProvider";
 
     /**
@@ -94,7 +97,6 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
      * The constructor signature must conform to hadoop calling convention exactly.
      * </p>
      *
-     * @param uri           An URI containing role ARN parameter
      * @param configuration Hadoop configuration data
      */
     public RoleBasedAWSCredentialProvider(Configuration configuration) {
