@@ -28,6 +28,16 @@ import java.util.Map;
  */
 public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, Configurable {
 
+    private final static int MAXIMUM_STS_SESSION_NAME_LENGTH = 64;
+
+    // Allows Unix timestamps in millis beyond the year 2506
+    private final static int MAXIMUM_UNIX_MILLIS_LENGTH = 14;
+
+    /**
+     * Maximum length of the user provided session prefix.
+     */
+    private final static int MAXIMUM_SESSION_PREFIX_LENGTH = MAXIMUM_STS_SESSION_NAME_LENGTH - MAXIMUM_UNIX_MILLIS_LENGTH;
+
     /**
      * Name of the credential provider to use.
      */
@@ -181,6 +191,8 @@ public class RoleBasedAWSCredentialProvider implements AWSCredentialsProvider, C
         String sessionNamePrefix = this.sessionNamePrefix;
         if (sessionNamePrefix == null) {
             sessionNamePrefix = "role-based-credential-provider";
+        } else if (sessionNamePrefix.length() > MAXIMUM_SESSION_PREFIX_LENGTH) {
+            sessionNamePrefix = sessionNamePrefix.substring(0, MAXIMUM_SESSION_PREFIX_LENGTH);
         }
 
         return sessionNamePrefix + String.valueOf(this.timeProvider.currentTimeMillis());
