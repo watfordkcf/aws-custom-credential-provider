@@ -9,7 +9,7 @@ accessed via an assumed role.
 # Usage
 To use this library, follow these steps:
 1. Download custom credential provider JAR or build it from source (you can use `--packages`).
-2. Set `spark.io.delta.storage.S3DynamoDBLogStore.credentials.provider` to `spark.com.kcftech.sd.credentials.RoleBasedAWSCredentialProvider`.
+2. Set `spark.io.delta.storage.S3DynamoDBLogStore.credentials.provider` to `com.kcftech.sd.credentials.RoleBasedAWSCredentialProvider`.
 3. Set `spark.com.kcftech.sd.credentials.AssumeRoleArn` to the AWS role name you plan to use:
 ```scala
 spark.sparkContext.hadoopConfiguration.set("spark.com.kcftech.sd.credentials.AssumeRoleArn", jobArgs.params.getOrElse("roleName", "your-aws-role-arn"))
